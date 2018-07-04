@@ -1,0 +1,7 @@
+
+
+api response out of date:
+    - consumed is a boolean not a string
+
+test improvements:
+    - add test message for empty list of purchases

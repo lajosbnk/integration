@@ -27,7 +27,7 @@ public class FlexionIntegration implements Integration {
     private static final int OK = 200;
     private static final String BUY_ENDPOINT = "/developer/{developerId}/buy/{itemId}";
     private static final String GET_PURCHASES_ENDPOINT = "/developer/{developerId}/all";
-    public static final String CONSUME_ENDPOINT = "/developer/{developerId}/consume/{purchaseId}";
+    private static final String CONSUME_ENDPOINT = "/developer/{developerId}/consume/{purchaseId}";
 
     private final URI rootURI;
     private final String developerId;

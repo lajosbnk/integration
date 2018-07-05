@@ -1,7 +1,2 @@
-
-
-api response out of date:
-    - consumed is a boolean not a string
-
-test improvements:
-    - add test message for empty list of purchases
+API specification is out of sync with the actual implementation:
+    - consumed field in the response json is a boolean not a string

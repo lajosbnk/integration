@@ -1,5 +1,6 @@
 package com.benko.integration;
 
+import com.benko.integration.config.ApiProperties;
 import com.flexionmobile.codingchallenge.integration.Purchase;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -8,12 +9,10 @@ import org.junit.runner.RunWith;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.verify.VerificationTimes;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.net.URI;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,10 +30,8 @@ public class FlexionIntegrationTest {
     @Autowired
     private FlexionIntegration integration;
 
-    @Value("${flexion.api.url}")
-    private URI rootUri;
-    @Value("${flexion.developer.id}")
-    private String developerId;
+    @Autowired
+    private ApiProperties props;
 
     @BeforeClass
     public static void startServer() {
@@ -45,7 +42,7 @@ public class FlexionIntegrationTest {
     public void whenPurchaseIsSuccessful_returnsUnconsumedPurchaseWithPurchaseId() {
         mockServer.when(request()
                 .withMethod("POST")
-                .withPath(buyPath(developerId, "item1")), exactly(1))
+                .withPath(buyPath(props.getDeveloperId(), "item1")), exactly(1))
                 .respond(response()
                         .withStatusCode(200)
                         .withBody(purchaseJson("abcdef", "item1")));
@@ -62,7 +59,7 @@ public class FlexionIntegrationTest {
     public void whenPurchaseIsNotSuccessful_returnsNullPurchase() {
         mockServer.when(request()
                 .withMethod("POST")
-                .withPath(buyPath(developerId, "item1")), exactly(1))
+                .withPath(buyPath(props.getDeveloperId(), "item1")), exactly(1))
                 .respond(response()
                         .withStatusCode(404));
 
@@ -75,7 +72,7 @@ public class FlexionIntegrationTest {
     public void whenCallToGetPurchasesEndpointIsSuccessful_returnsListOfPurchases() {
         mockServer.when(request()
                 .withMethod("GET")
-                .withPath(getPurchasesPath(developerId)), exactly(1))
+                .withPath(getPurchasesPath(props.getDeveloperId())), exactly(1))
                 .respond(response()
                         .withStatusCode(200)
                         .withBody(purchasesJson()));
@@ -89,7 +86,7 @@ public class FlexionIntegrationTest {
     public void whenCallToGetPurchasesEndpointIsNotSuccessful_returnsEmptyList() {
         mockServer.when(request()
                 .withMethod("GET")
-                .withPath(getPurchasesPath(developerId)), exactly(1))
+                .withPath(getPurchasesPath(props.getDeveloperId())), exactly(1))
                 .respond(response()
                         .withStatusCode(404));
 
@@ -102,13 +99,13 @@ public class FlexionIntegrationTest {
     public void callsConsumeEndpointExactlyOnce() {
         mockServer.when(request()
                 .withMethod("POST")
-                .withPath(consumePath(developerId, "abcdef")), exactly(1))
+                .withPath(consumePath(props.getDeveloperId(), "abcdef")), exactly(1))
                 .respond(response()
                         .withStatusCode(200));
 
         integration.consume(purchase(true, "abcdef", "item1"));
 
-        mockServer.verify(request().withPath(consumePath(developerId, "abcdef")), VerificationTimes.once());
+        mockServer.verify(request().withPath(consumePath(props.getDeveloperId(), "abcdef")), VerificationTimes.once());
     }
 
     private Purchase purchase(boolean consumed, String id, String itemId) {

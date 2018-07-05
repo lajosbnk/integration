@@ -1,5 +1,6 @@
 package com.benko.integration;
 
+import com.benko.integration.config.ApiProperties;
 import com.flexionmobile.codingchallenge.integration.Integration;
 import com.flexionmobile.codingchallenge.integration.Purchase;
 import com.mashape.unirest.http.HttpResponse;
@@ -10,10 +11,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,22 +22,17 @@ import java.util.stream.StreamSupport;
 public class FlexionIntegration implements Integration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FlexionIntegration.class);
-    private static final long TEN_SECONDS = 10000;
     private static final int OK = 200;
-    private static final String BUY_ENDPOINT = "/developer/{developerId}/buy/{itemId}";
-    private static final String GET_PURCHASES_ENDPOINT = "/developer/{developerId}/all";
-    private static final String CONSUME_ENDPOINT = "/developer/{developerId}/consume/{purchaseId}";
 
-    private final URI rootURI;
+    private final ApiProperties props;
     private final String developerId;
 
     @Autowired
-    public FlexionIntegration(@Value("${flexion.api.url}") URI rootURI,
-                              @Value("${flexion.developer.id}") String developerId) {
-        this.rootURI = rootURI;
-        this.developerId = developerId;
+    public FlexionIntegration(ApiProperties apiProperties) {
+        props = apiProperties;
+        developerId = props.getDeveloperId();
 
-        Unirest.setTimeouts(TEN_SECONDS, TEN_SECONDS);
+        Unirest.setTimeouts(props.getTimeoutMillis(), props.getTimeoutMillis());
     }
 
     @Override
@@ -47,7 +41,7 @@ public class FlexionIntegration implements Integration {
 
         try {
             HttpResponse<JsonNode> response =
-                    Unirest.post(rootURI.toString() + BUY_ENDPOINT)
+                    Unirest.post(props.getBaseUrl().toString() + props.getBuyEndpoint())
                             .routeParam("developerId", developerId)
                             .routeParam("itemId", itemId)
                             .asJson();
@@ -72,8 +66,8 @@ public class FlexionIntegration implements Integration {
         LOGGER.info("Calling getPurchases endpoint with developerId: [{}]", developerId);
 
         try {
-            HttpResponse<JsonNode> response = Unirest.get(rootURI.toString() + GET_PURCHASES_ENDPOINT)
-                    .routeParam("developerId", this.developerId)
+            HttpResponse<JsonNode> response = Unirest.get(props.getBaseUrl().toString() + props.getAllEndpoint())
+                    .routeParam("developerId", developerId)
                     .asJson();
 
             if (response.getStatus() == OK) {
@@ -96,8 +90,8 @@ public class FlexionIntegration implements Integration {
         LOGGER.info("Calling consume endpoint with purchase id: [{}]", purchase.getId());
 
         try {
-            HttpResponse<String> response = Unirest.post(rootURI.toString() + CONSUME_ENDPOINT)
-                    .routeParam("developerId", this.developerId)
+            HttpResponse<String> response = Unirest.post(props.getBaseUrl().toString() + props.getConsumeEndpoint())
+                    .routeParam("developerId", developerId)
                     .routeParam("purchaseId", purchase.getId()).asString();
 
             if (response.getStatus() == OK) {

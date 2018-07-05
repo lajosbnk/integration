@@ -1,2 +1,8 @@
-API specification is out of sync with the actual implementation:
-    - consumed field in the response json is a boolean not a string
+It's a simple Spring Boot application, you can start it from an IDE or with maven.
+I left a CommandlineRunner class commented out in the IntegrationApplication class that runs the IntegrationTestRunner class on startup.
+
+
+Comments:
+
+    API specification is out of sync with the actual implementation:
+        - consumed field in the response json is a boolean not a string
